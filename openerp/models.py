@@ -4655,6 +4655,8 @@ class BaseModel(object):
         fields = self.fields_get(cr, uid, context=context)
 
         for field_name, field_def in fields.items():
+            if not field_def.get('copy'):
+                continue
             # removing the lang to compare untranslated values
             context_wo_lang = dict(context, lang=None)
             old_record, new_record = self.browse(cr, uid, [old_id, new_id], context=context_wo_lang)
