@@ -38,6 +38,16 @@ def dispatch(method, params):
     openerp.modules.registry.RegistryManager.signal_caches_change(db)
     return res
 
+def _cleanup_environment():
+    Environment = openerp.api.Environment
+    todo = Environment._local.environments.todo
+    for field in todo.keys():
+        for obj in list(todo[field]):
+            if obj._cr._closed:
+                todo[field].remove(obj)
+        if len(todo[field]) < 1:
+            del todo[field]
+
 def check(f):
     @wraps(f)
     def wrapper(___dbname, *args, **kwargs):
@@ -118,6 +128,7 @@ def check(f):
                 if tries >= MAX_TRIES_ON_CONCURRENCY_FAILURE:
                     _logger.warning("%s, maximum number of tries reached" % errorcodes.lookup(e.pgcode))
                     raise
+                _cleanup_environment()
                 wait_time = random.uniform(0.0, 2 ** tries)
                 tries += 1
                 _logger.info("%s, retry %d/%d in %.04f sec..." % (errorcodes.lookup(e.pgcode), tries, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time))
