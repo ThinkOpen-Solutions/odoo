@@ -334,7 +334,12 @@
                             created = true;
                             record = self.records.find(function (r) {
                                 return !r.get('id');
-                            }).set('id', attrs.id);
+                            })
+			    if (record){
+			    	record = record.set('id', attrs.id);
+			    }else{
+				return;
+			    }
                         }
                         // onwrite callback could be altering & reloading the
                         // record which has *just* been saved, so first perform all
