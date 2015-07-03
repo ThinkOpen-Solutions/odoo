@@ -50,6 +50,7 @@ import re
 import time
 from collections import defaultdict, MutableMapping
 from inspect import getmembers
+from operator import itemgetter
 
 import babel.dates
 import dateutil.relativedelta
@@ -5258,7 +5259,7 @@ class BaseModel(object):
         if key is None:
             return self.search([('id', 'in', self.ids)])
         else:
-            return self.browse(map(int, sorted(self, key=key)))
+            return self.browse(map(itemgetter('id'), sorted(self, key=key)))
 
     def update(self, values):
         """ Update record `self[0]` with `values`. """
