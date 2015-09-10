@@ -463,6 +463,7 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
             cr.execute("SELECT name FROM ir_module_module WHERE state='installed'")
             for module_name in cr.fetchall():
                 report.record_result(openerp.modules.module.run_unit_tests(module_name[0], cr.dbname, position=runs_post_install))
+                report.record_result(openerp.modules.module.run_behave_tests(module_name[0], cr.dbname))
             _logger.log(25, "All post-tested in %.2fs, %s queries", time.time() - t0, openerp.sql_db.sql_counter - t0_sql)
     finally:
         cr.close()

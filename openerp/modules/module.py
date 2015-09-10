@@ -38,6 +38,11 @@ import openerp.tools as tools
 import openerp.release as release
 from openerp.tools.safe_eval import safe_eval as eval
 
+from behave.configuration import Configuration
+from behave.runner import Runner
+from openerp.modules.registry import RegistryManager
+from openerp import api
+
 MANIFEST = '__openerp__.py'
 README = ['README.rst', 'README.md', 'README.txt']
 
@@ -474,5 +479,36 @@ def unwrap_suite(test):
     for item in itertools.chain.from_iterable(
             itertools.imap(unwrap_suite, subtests)):
         yield item
+
+def run_behave_tests(module_name, dbname):
+    global current_test
+    current_test = module_name
+    module_path = get_module_path(module_name)
+    features_path = opj(module_path, 'features')
+    if not module_path or not os.path.exists(features_path):
+        return True
+    cfg = Configuration(command_args=[features_path], format=['pretty'], lang='pt')
+    runner = Runner(cfg)
+    def setup_behave_testing(context):
+        from openerp.tests.common import DB
+        context.config.setup_logging()
+        context.registry = RegistryManager.get(DB)
+        context.cr = context.registry.cursor()
+        context.uid = openerp.SUPERUSER_ID
+        context.env = api.Environment(context.cr, context.uid, {})
+    runner.hooks['before_all'] = setup_behave_testing
+    def shutdown_behave_testing(context):
+        context.cr.rollback()
+        context.cr.close()
+    runner.hooks['after_all'] = shutdown_behave_testing
+    r = True
+    try:
+        failed = runner.run()
+        r = not failed
+    except Exception as e:
+        _logger.exception('Error running Behave tests for module %s: %s', module_name, e)
+        r = False
+    current_test = None
+    return r
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
