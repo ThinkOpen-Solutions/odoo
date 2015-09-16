@@ -38,9 +38,14 @@ import openerp.tools as tools
 import openerp.release as release
 from openerp.tools.safe_eval import safe_eval as eval
 
-from behave.configuration import Configuration
-from behave.runner import Runner
-from openerp.modules.registry import RegistryManager
+try:
+    from behave.configuration import Configuration
+    from behave.runner import Runner
+    from openerp.modules.registry import RegistryManager
+    behave_loaded = True
+except ImportError:
+    behave_loaded = False
+
 from openerp import api
 
 MANIFEST = '__openerp__.py'
@@ -481,6 +486,9 @@ def unwrap_suite(test):
         yield item
 
 def run_behave_tests(module_name, dbname):
+    if not behave_loaded:
+        _logger.error("Couldn't load Behave")
+        return True
     global current_test
     current_test = module_name
     module_path = get_module_path(module_name)
