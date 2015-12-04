@@ -18,7 +18,6 @@
                     <field name="parent_id" invisible="1"/>
                     <field name="payment_responsible_id"/>
                     <field name="payment_earliest_due_date"/>
-                    <field name="latest_followup_level_id"/>
                     <field name="payment_amount_overdue"/>
                     <field name="payment_amount_due" />
                 </tree>
